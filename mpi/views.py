@@ -1,7 +1,10 @@
+from django import http
 from django.shortcuts import render
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from rest_framework import viewsets
+from django.views.decorators.csrf import csrf_exempt
+
 
 from mpi import models
 from mpi import forms
@@ -15,6 +18,7 @@ def index(request):
     )
 
 
+@csrf_exempt
 def upload(request):
     if request.method == 'POST':
         form = forms.UploadFileForm(request.POST, request.FILES)
@@ -34,8 +38,8 @@ def upload(request):
                 lat=lat,
                 lon=lon)
             incident.save()
-            return render(request, 'mpi/upload.html', {
-                'uploaded_file_url': uploaded_file_url
+            return http.JsonResponse({
+                'name': uploaded_file_url
             })
     form = forms.UploadFileForm()
     return render(request, 'mpi/upload.html', {'form': form})
