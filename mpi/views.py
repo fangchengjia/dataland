@@ -18,6 +18,22 @@ def index(request):
     )
 
 
+def alerts(request):
+    alerts = []
+    for incident in models.Incident.objects.filter(alert=True):
+        alerts.append({
+            'name': incident.name,
+            'photoUrl': incident.photoUrl,
+            'description': incident.description,
+            'zipcode': incident.zipcode,
+            'treatment': incident.treatment,
+            'timestamp': incident.timestamp
+        })
+    return http.JsonResponse({
+        'alerts': alerts
+    })
+
+
 @csrf_exempt
 def upload(request):
     if request.method == 'POST':

@@ -11,9 +11,12 @@ class Incident(models.Model):
     lat = models.CharField(max_length=100, default='', blank=True)
     lon = models.CharField(max_length=100, default='', blank=True)
 
+    alert = models.BooleanField(default=False)
+    zipcode = models.CharField(
+        max_length=100, default='', blank=True)
     treatment = models.CharField(
         blank=True, max_length=500, default='')
-    reviewed = models.BooleanField(default=False)
+
     timestamp = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
