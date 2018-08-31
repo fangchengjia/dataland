@@ -40,6 +40,12 @@ class HomePage extends Component {
 		}
 	}
 
+	componentDidMount() {
+		this.setState({
+			reportedItems: []
+		})
+	}
+
 	createList(){
 		const {classes, history} = this.props;
 		return (
