@@ -8,6 +8,7 @@ class Incident(models.Model):
     photoUrl = models.CharField(
         blank=True, max_length=500, default='')
     description = models.TextField(blank=True, default='')
+    predictions = models.TextField(blank=True, default='')
     lat = models.CharField(max_length=100, default='', blank=True)
     lon = models.CharField(max_length=100, default='', blank=True)
 
@@ -20,7 +21,7 @@ class Incident(models.Model):
     timestamp = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('-timestamp',)
 
     def __unicode__(self):
         return self.name

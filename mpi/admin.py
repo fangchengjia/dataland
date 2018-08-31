@@ -1,7 +1,10 @@
 import requests
+import json
+import os
 
 from django.contrib import admin
 from mpi import models as mpimodels
+from mpi import engine
 
 
 GOOGLEMAP_KEY = 'AIzaSyC3_ZNlG2nHQViosKvhbN56hqpli22REo4'
@@ -28,24 +31,32 @@ def reverse_geocoding(lat, lon):
     return None
 
 
-def alert(modeladmin, request, queryset):
+def analyse(modeladmin, request, queryset):
     for incident in queryset:
         if incident.zipcode != '':
-            incident.alert = True
             incident.save()
         elif incident.lat != '' and incident.lon != '':
             code = reverse_geocoding(incident.lat, incident.lon)
             if code is not None:
                 incident.zipcode = code
-                incident.alert = True
                 incident.save()
+        if incident.predictions == '':
+            incident.predictions = json.dumps(
+                engine.predict(incident.photoUrl.lstrip('/')))
+            incident.save()
+
+
+def alert(modeladmin, request, queryset):
+    for incident in queryset:
+        incident.alert = True
+        incident.save()
 
 
 @admin.register(mpimodels.Incident)
 class Incident(admin.ModelAdmin):
     list_display = ['name', 'photoUrl', 'description', 'lat', 'lon',
         'alert', 'zipcode', 'treatment', 'timestamp']
-    actions = [alert]
+    actions = [analyse, alert]
 
 
 @admin.register(mpimodels.Record)

@@ -1,9 +1,12 @@
+import json
+
 from django import http
 from django.shortcuts import render
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from rest_framework import viewsets
 from django.views.decorators.csrf import csrf_exempt
+from mpi import engine
 
 
 from mpi import models
@@ -22,14 +25,22 @@ def index(request):
 def alerts(request):
     alerts = []
     for incident in models.Incident.objects.filter(alert=True):
-        alerts.append({
-            'name': incident.name,
-            'photoUrl': incident.photoUrl,
-            'description': incident.description,
-            'zipcode': incident.zipcode,
-            'treatment': incident.treatment,
-            'timestamp': incident.timestamp
-        })
+        treatments = []
+        if incident.treatment != '':
+            for match_id in json.loads(incident.treatment):
+                record = models.Record.objects.get(id=match_id)
+                treatments.append({
+                    'name': record.name,
+                    'description': record.description,
+                    'url': record.url,
+                })
+            alerts.append({
+                'name': incident.name,
+                'photoUrl': incident.photoUrl,
+                'zipcode': incident.zipcode,
+                'treatments': treatments,
+                'timestamp': incident.timestamp
+            })
     return http.JsonResponse({
         'alerts': alerts
     })
@@ -59,8 +70,20 @@ def upload(request):
                 if code is not None:
                     incident.zipcode = code
             incident.save()
+            predictions = engine.predict(
+                incident.photoUrl.lstrip('/'))
+            incident.predictions = predictions
+            most_likely = predictions[0]['label'].replace('_', ' ')
+            matches = []
+            for match in models.Record.objects.filter(
+                    name__icontains=most_likely):
+                matches.append(match.id)
+            incident.treatment = json.dumps(matches)
+            incident.save()
             return http.JsonResponse({
-                'name': uploaded_file_url
+                'name': incident.name,
+                'photoUrl': uploaded_file_url,
+                'predictions': predictions
             })
     form = forms.UploadFileForm()
     return render(request, 'mpi/upload.html', {'form': form})
