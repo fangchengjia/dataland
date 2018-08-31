@@ -14,30 +14,38 @@ def _payload_parser(payload_dict):
         for key, value in payload_dict.items()])
 
 
-def process_incident(modeladmin, request, queryset):
+def reverse_geocoding(lat, lon):
+    payload = _payload_parser({'latlng': '{},{}'.format(lat, lon)})
+    rsp = requests.get(REQ_FORMAT.format(
+        api=GEOCODE_API, key=GOOGLEMAP_KEY) + '&' + payload
+    ).json()
+    if rsp['results'] == []:
+        return None
+    components = rsp['results'][0]['address_components']
+    for component in components:
+        if 'postal_code' in component['types']:
+            return component['short_name']
+    return None
+
+
+def alert(modeladmin, request, queryset):
     for incident in queryset:
-        if incident.lat != '' and incident.lon != '':
-            payload = _payload_parser({
-                'latlng': '40.714224,-73.961452'
-            })
-            rsp = requests.get(REQ_FORMAT.format(
-                api=GEOCODE_API, key=GOOGLEMAP_KEY) + '&' + payload
-            ).json()
-            components = rsp['results'][0]['address_components']
-            for component in components:
-                if 'postal_code' in component['types']:
-                    code = component['short_name']
-                    incident.zipcode = code
-                    incident.alert = True
-                    incident.save()
-                    break
+        if incident.zipcode != '':
+            incident.alert = True
+            incident.save()
+        elif incident.lat != '' and incident.lon != '':
+            code = reverse_geocoding(incident.lat, incident.lon)
+            if code is not None:
+                incident.zipcode = code
+                incident.alert = True
+                incident.save()
 
 
 @admin.register(mpimodels.Incident)
 class Incident(admin.ModelAdmin):
     list_display = ['name', 'photoUrl', 'description', 'lat', 'lon',
         'alert', 'zipcode', 'treatment', 'timestamp']
-    actions = [process_incident]
+    actions = [alert]
 
 
 @admin.register(mpimodels.Record)

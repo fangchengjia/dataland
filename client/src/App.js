@@ -1,18 +1,29 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import { withScriptjs, withGoogleMap, 
+  KmlLayer, GoogleMap } from "react-google-maps"
 import './App.css';
+
+
+const MyMapComponent = withScriptjs(withGoogleMap((props) =>
+  <GoogleMap defaultZoom={6} 
+      defaultCenter={{ lat: -40.9006, lng: 174.8860 }}>
+    <KmlLayer
+      url="http://127.0.0.1:8000/media/nz-post-postcode-boundaries.kml"
+    />
+  </GoogleMap>
+))
+
 
 class App extends Component {
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <MyMapComponent
+          googleMapURL="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places"
+          loadingElement={<div style={{ height: `100%` }} />}
+          containerElement={<div style={{ height: `620px` }} />}
+          mapElement={<div style={{ height: `100%` }} />}
+        />
       </div>
     );
   }

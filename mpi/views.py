@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from mpi import models
 from mpi import forms
 from mpi import serializers
+from mpi.admin import reverse_geocoding
 
 
 def index(request):
@@ -53,6 +54,10 @@ def upload(request):
                 description=description,
                 lat=lat,
                 lon=lon)
+            if incident.lat != '' and incident.lon != '':
+                code = reverse_geocoding(lat, lon)
+                if code is not None:
+                    incident.zipcode = code
             incident.save()
             return http.JsonResponse({
                 'name': uploaded_file_url
