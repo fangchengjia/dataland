@@ -12,7 +12,8 @@ schema_view = get_schema_view(title='Bio No Shock API')
 admin.autodiscover()
 
 router = DefaultRouter()
-router.register(r'mpi', mpi_views.IncidentViewSet)
+router.register(r'incidents', mpi_views.IncidentViewSet)
+router.register(r'records', mpi_views.RecordViewSet)
 
 
 urlpatterns = [
