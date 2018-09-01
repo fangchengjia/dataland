@@ -17,6 +17,7 @@ router.register(r'records', mpi_views.RecordViewSet)
 
 
 urlpatterns = [
+	url(r'^$', mpi_views.index, name='index'),
     url(r'^admin/', admin.site.urls),
     url(r'^mpi/', include('mpi.urls')),
     url(r'^api/v1/', include(router.urls)),

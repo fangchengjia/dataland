@@ -18,7 +18,7 @@ from mpi.admin import reverse_geocoding
 def index(request):
     return render(
         request,
-        'mpi/index.html'
+        'index.html'
     )
 
 
