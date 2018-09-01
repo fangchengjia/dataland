@@ -22,9 +22,9 @@ def index(request):
     )
 
 
-def alerts(request):
-    alerts = []
-    for incident in models.Incident.objects.filter(alert=True):
+def incidents(request):
+    incidents = []
+    for incident in models.Incident.objects.all():
         treatments = []
         if incident.treatment != '':
             for match_id in json.loads(incident.treatment):
@@ -34,16 +34,46 @@ def alerts(request):
                     'description': record.description,
                     'url': record.url,
                 })
-            alerts.append({
+            incidents.append({
+                'id': incident.id,
                 'name': incident.name,
                 'photoUrl': incident.photoUrl,
+                'lat': incident.lat,
+                'lon': incident.lon,
                 'zipcode': incident.zipcode,
+                'predictions': incident.predictions,
                 'treatments': treatments,
                 'timestamp': incident.timestamp
             })
     return http.JsonResponse({
-        'alerts': alerts
+        'incidents': incidents
     })
+
+
+def incident(request, incident_id):
+    incident_detail = ''
+    incident = models.Incident.objects.get(id=incident_id)
+    treatments = []
+    if incident.treatment != '':
+        for match_id in json.loads(incident.treatment):
+            record = models.Record.objects.get(id=match_id)
+            treatments.append({
+                'name': record.name,
+                'description': record.description,
+                'url': record.url,
+            })
+        incident_detail = {
+            'id': incident.id,
+            'name': incident.name,
+            'photoUrl': incident.photoUrl,
+            'lat': incident.lat,
+            'lon': incident.lon,
+            'zipcode': incident.zipcode,
+            'probability': incident.predictions,
+            'description': treatments[0]['description'],
+            'timestamp': incident.timestamp
+        }
+    return http.JsonResponse(incident_detail)
 
 
 @csrf_exempt
@@ -72,11 +102,11 @@ def upload(request):
             incident.save()
             predictions = engine.predict(
                 incident.photoUrl.lstrip('/'))
-            incident.predictions = predictions
-            most_likely = predictions[0]['label'].replace('_', ' ')
+            most_likely_name = predictions[0]['label'].replace('_', ' ')
+            incident.predictions = predictions[0]['probability']
             matches = []
             for match in models.Record.objects.filter(
-                    name__icontains=most_likely):
+                    name__icontains=most_likely_name):
                 matches.append(match.id)
             incident.treatment = json.dumps(matches)
             incident.save()
