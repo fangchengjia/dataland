@@ -19,22 +19,22 @@ def predict(img_path):
     # print("Loaded model from disk")
 
     try:
-        model = VGG16(weights='imagenet', include_top=True)
-        img = image.load_img(img_path, target_size=(224, 224))
-        x = image.img_to_array(img)
-        x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x)
-        print(img_path)
+        # model = VGG16(weights='imagenet', include_top=True)
+        # img = image.load_img(img_path, target_size=(224, 224))
+        # x = image.img_to_array(img)
+        # x = np.expand_dims(x, axis=0)
+        # x = preprocess_input(x)
+        # print(img_path)
 
-        preds = model.predict(x)
-        results = imagenet_utils.decode_predictions(preds)
-        predictions = []
+        # preds = model.predict(x)
+        # results = imagenet_utils.decode_predictions(preds)
+        # predictions = []
 
-        # loop over the results and add them to the list of
-        # returned predictions
-        for (imagenetID, label, prob) in results[0]:
-            r = {"label": label, "probability": float(prob)}
-            predictions.append(r)
+        # # loop over the results and add them to the list of
+        # # returned predictions
+        # for (imagenetID, label, prob) in results[0]:
+        #     r = {"label": label, "probability": float(prob)}
+        #     predictions.append(r)
 
         # return predictions
         return [{
